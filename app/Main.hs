@@ -21,7 +21,7 @@ puzzleLength l = length l
 puzzleWidth w = length $ head $ w
 
 -- wczytywanie pierwszego wiersza z pliku wejściowego *.txt
-readLineToArray (c:xs) arInput x y | c/='.' = readLineToArray xs (set arInput (y,x) (digitToInt c)) (x+1) y | otherwise = readLineToArray xs arInput (x+1) y
+readLineToArray (c:xs) arInput x y | c/='.' = readLineToArray xs (set arInput (x,y) (digitToInt c)) (x+1) y | otherwise = readLineToArray xs arInput (x+1) y
 readLineToArray [] arInput x y = arInput
 
 -- wczytywanie wszystkich wierszy z pliku wejściowego *.txt
@@ -91,11 +91,11 @@ makeSolution inputArray endArray [] w l |
 
 
 printSolutionA endArray ((x,y):zs) n w | n < (w - 1) = do
-                                                          putStr(show $ endArray x y)
+                                                          putStr(show $ endArray y x)
                                                           putStr(show $ ' ')
                                                           printSolutionA endArray zs (n+1) w
                                        | otherwise = do
-                                                        putStrLn(show $ endArray x y)
+                                                        putStrLn(show $ endArray y x)
                                                         printSolutionA endArray zs 0 w
 
 
