@@ -17,16 +17,16 @@ minus_one x y = -1
 set array (x,y) c =  (\x1 y1 -> if ((x==x1) && (y==y1)) then c else array x1 y1 )
 
 -- wczytaj długosć i szerokosć tabeli
-puzzleLength p = length p
-puzzleWidth pw = length $ head $ pw
+puzzleLength l = length l
+puzzleWidth w = length $ head $ w
 
 -- wczytywanie pierwszego wiersza z pliku wejściowego *.txt
-readLineToArray (c:xs) ar x y | c/='.' = readLineToArray xs (set ar (x,y) (digitToInt c)) (x+1) y | otherwise = readLineToArray xs ar (x+1) y
-readLineToArray [] ar x y = ar
+readLineToArray (c:xs) arInput x y | c/='.' = readLineToArray xs (set arInput (y,x) (digitToInt c)) (x+1) y | otherwise = readLineToArray xs arInput (x+1) y
+readLineToArray [] arInput x y = arInput
 
 -- wczytywanie wszystkich wierszy z pliku wejściowego *.txt
-readAllLinesToArray (z:zs) arInput y = readAllLinesToArray zs (readLineToArray z arInput 0 y) (y+1)
-readAllLinesToArray [] arInput y = arInput
+readAllLinesToArray (z:zs) arInput x y = readAllLinesToArray zs (readLineToArray z arInput x y) x (y+1)
+readAllLinesToArray [] arInput x y = arInput
 
 input = set zero (1,4) 7 -- macierz wejściowa
 
@@ -102,6 +102,14 @@ printSolutionA endArray ((x,y):zs) n w | n < (w - 1) = do
 printSolution Nothing lisOfAllElem n w = putStrLn(show $ "Unsolved ")
 printSolution (Just endArray) lisOfAllElem n w = printSolutionA endArray lisOfAllElem n w
 
+printSolutionE endArray ((x,y):zs) n w | n < (w - 1) = do
+                                                          putStr(show $ (x, y))
+                                                          putStr(show $ ' ')
+                                                          printSolutionE endArray zs (n+1) w
+                                       | otherwise = do
+                                                        putStrLn(show $ (x,y))
+                                                        printSolutionE endArray zs 0 w
+
 --ok_cond array input_array x y comparator -- czy suma elementow kolo tego jest comparator wzgledem wrunkow poczatkowych
 
 --may_be_good array input_array x y -- czy warunki wokol elemntu moga byc spelnione
@@ -119,14 +127,16 @@ main = do
   puzzle <- readPuzzle "puzzle.txt"
   let l = puzzleLength puzzle
   let w = puzzleWidth puzzle
-  let lisOfAllElem = makeListOfElem (w-1) (l-1) 0 0
-  let inputArray = readAllLinesToArray puzzle minus_one 0
-  let res = (makeSolution inputArray zero lisOfAllElem w l)
-  putStrLn(show $ w)
-  putStrLn(show $ lisOfAllElem)
-  --putStrLn(show $ printJust res 2 2)
-  printSolution res lisOfAllElem 0 w
+  let listOfAllElem = makeListOfElem (w-1) (l-1) 0 0
+  let inputArray = readAllLinesToArray puzzle minus_one 0 0
+  let result = (makeSolution inputArray zero listOfAllElem w l)
+  --putStrLn(show $ w)
+  --putStrLn(show $ listOfAllElem)
 
+  --printSolutionA inputArray listOfAllElem 0 w
+  printSolution result listOfAllElem 0 w
+
+  --putStrLn(show $ printJust res 2 2)
   --putStrLn(show $ printJust (makeSolution (set ( set (set (set (set (set zero (3,3) 1) (3,2) 1) (2,3) 1) (2,2) 1) (3,1) 1 ) (2,1) 1) (set zero (3,2) 1) [(3,3)]  4 4) 3 3)
   --putStrLn(show $ isGood (set zero (3,2) 1) (set ( set (set (set (set (set zero (3,3) 1) (3,2) 1) (2,3) 1) (2,2) 1) (3,1) 1 ) (2,1) 1)  (makeListOfElem (3) (3) 0 0) (==)  4 4)
   --putStrLn(show $ okCondition (set zero (3,2) 1) (set ( set (set (set (set (set zero (3,3) 1) (3,2) 1) (2,3) 1) (2,2) 1) (3,1) 1 ) (2,1) 1)  (2,3) (==)  4 4)
