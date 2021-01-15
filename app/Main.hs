@@ -87,10 +87,19 @@ makeSolution inputArray endArray [] w l |
   isGood endArray inputArray (makeListOfElem (w-1) (l-1) 0 0) (==)  w l = Just endArray 
   |otherwise = Nothing
          
- 
 
 
 
+printSolutionA endArray ((x,y):zs) n w | n < (w - 1) = do 
+                                                          putStr(show $ endArray x y) 
+                                                          printSolutionA endArray zs (n+1) w 
+                                       | otherwise = do 
+                                                        putStrLn(show $ endArray x y) 
+                                                        printSolutionA endArray zs 0 w
+
+
+printSolution Nothing lisOfAllElem n w = putStrLn(show $ "Unsolved ")
+printSolution (Just endArray) lisOfAllElem n w = printSolutionA endArray lisOfAllElem n w
 
 --ok_cond array input_array x y comparator -- czy suma elementow kolo tego jest comparator wzgledem wrunkow poczatkowych
 
@@ -106,13 +115,17 @@ printJust (Just a) x y = a x y
 printJust Nothing x y = -1
 
 main = do
-  puzzle <- readPuzzle "puzzle1.txt"
+  puzzle <- readPuzzle "puzzle.txt"
   let l = puzzleLength puzzle 
   let w = puzzleWidth puzzle 
   let lisOfAllElem = makeListOfElem (w-1) (l-1) 0 0 
   let inputArray = readAllLinesToArray puzzle minus_one 0
-  let res=(makeSolution inputArray zero lisOfAllElem w l)
-  putStrLn(show $ printJust res 2 2)
+  let res = (makeSolution inputArray zero lisOfAllElem w l)
+  putStrLn(show $ w)
+  putStrLn(show $ lisOfAllElem)
+  --putStrLn(show $ printJust res 2 2)
+  printSolution res lisOfAllElem 0 w
+  
   --putStrLn(show $ printJust (makeSolution (set ( set (set (set (set (set zero (3,3) 1) (3,2) 1) (2,3) 1) (2,2) 1) (3,1) 1 ) (2,1) 1) (set zero (3,2) 1) [(3,3)]  4 4) 3 3)
   --putStrLn(show $ isGood (set zero (3,2) 1) (set ( set (set (set (set (set zero (3,3) 1) (3,2) 1) (2,3) 1) (2,2) 1) (3,1) 1 ) (2,1) 1)  (makeListOfElem (3) (3) 0 0) (==)  4 4)
   --putStrLn(show $ okCondition (set zero (3,2) 1) (set ( set (set (set (set (set zero (3,3) 1) (3,2) 1) (2,3) 1) (2,2) 1) (3,1) 1 ) (2,1) 1)  (2,3) (==)  4 4)
