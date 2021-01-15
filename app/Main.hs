@@ -38,18 +38,18 @@ okCondition endArray inputArray (x,y) comparator w l |
   y<0 = True |
   x>=w = True |
   y>=w = True |
-  (inputArray x y) == -1 = True| 
-  otherwise = comparator ((endArray x y) + 
-                          (endArray (x+1) y) + 
-                          (endArray (x-1) y) + 
-                          (endArray x (y+1)) + 
+  (inputArray x y) == -1 = True|
+  otherwise = comparator ((endArray x y) +
+                          (endArray (x+1) y) +
+                          (endArray (x-1) y) +
+                          (endArray x (y+1)) +
                           (endArray (x+1) (y+1)) +
                           (endArray (x-1) (y+1)) +
-                          (endArray x (y-1)) + 
-                          (endArray (x+1) (y-1)) + 
-                          (endArray (x-1) (y-1)))  (inputArray x y) 
-             
-makeListToSearch (x,y) = makeListOfElem (x+1) (y+1) (x-1) (y-1)  
+                          (endArray x (y-1)) +
+                          (endArray (x+1) (y-1)) +
+                          (endArray (x-1) (y-1)))  (inputArray x y)
+
+makeListToSearch (x,y) = makeListOfElem (x+1) (y+1) (x-1) (y-1)
 
 --czy warunki wokol elemntu moga byc spelnion
 mayBeGood endArray inputArray (x,y) comperator w l =  okCondition endArray inputArray (x,y) comperator  w l
@@ -61,8 +61,8 @@ mayBeGood endArray inputArray (x,y) comperator w l =  okCondition endArray input
                                                   && okCondition endArray inputArray ((x+1),y) comperator  w l
                                                   && okCondition endArray inputArray ((x+1),(y-1)) comperator  w l
                                                   && okCondition endArray inputArray ((x+1),(y+1)) comperator  w l
-                                          
--- wstawienie 0 lub 1 w określonym położeniu końcowej macierzy                                                
+
+-- wstawienie 0 lub 1 w określonym położeniu końcowej macierzy
 putOneOrZero endArray ((x,y):zs) n = set endArray (x,y) n
 
 -- czy wszystkie warunki sa spelnione
@@ -73,28 +73,29 @@ testZero inputArray endArray ((x,y):restOfAllElements) w l |
   okCondition endArray inputArray ((x-1),(y-1)) (==)  w l= makeSolution inputArray endArray restOfAllElements  w l
   | otherwise = Nothing
 
-makeSolution inputArray endArray ((x,y):restOfAllElements)  w l  = 
+makeSolution inputArray endArray ((x,y):restOfAllElements)  w l  =
    ( let with_one = (set endArray (x,y) 1) in
-      if (mayBeGood with_one inputArray (x,y) (<=)  w l) then 
-        let res = makeSolution inputArray with_one restOfAllElements  w l in 
+      if (mayBeGood with_one inputArray (x,y) (<=)  w l) then
+        let res = makeSolution inputArray with_one restOfAllElements  w l in
           case (res) of
               Nothing -> (testZero inputArray endArray ((x,y):restOfAllElements) w l )
               Just a -> Just a
       else
         testZero  inputArray endArray ((x,y):restOfAllElements) w l)
 
-makeSolution inputArray endArray [] w l | 
-  isGood endArray inputArray (makeListOfElem (w-1) (l-1) 0 0) (==)  w l = Just endArray 
+makeSolution inputArray endArray [] w l |
+  isGood endArray inputArray (makeListOfElem (w-1) (l-1) 0 0) (==)  w l = Just endArray
   |otherwise = Nothing
-         
 
 
 
-printSolutionA endArray ((x,y):zs) n w | n < (w - 1) = do 
-                                                          putStr(show $ endArray x y) 
-                                                          printSolutionA endArray zs (n+1) w 
-                                       | otherwise = do 
-                                                        putStrLn(show $ endArray x y) 
+
+printSolutionA endArray ((x,y):zs) n w | n < (w - 1) = do
+                                                          putStr(show $ endArray x y)
+                                                          putStr(show $ ' ')
+                                                          printSolutionA endArray zs (n+1) w
+                                       | otherwise = do
+                                                        putStrLn(show $ endArray x y)
                                                         printSolutionA endArray zs 0 w
 
 
@@ -116,20 +117,20 @@ printJust Nothing x y = -1
 
 main = do
   puzzle <- readPuzzle "puzzle.txt"
-  let l = puzzleLength puzzle 
-  let w = puzzleWidth puzzle 
-  let lisOfAllElem = makeListOfElem (w-1) (l-1) 0 0 
+  let l = puzzleLength puzzle
+  let w = puzzleWidth puzzle
+  let lisOfAllElem = makeListOfElem (w-1) (l-1) 0 0
   let inputArray = readAllLinesToArray puzzle minus_one 0
   let res = (makeSolution inputArray zero lisOfAllElem w l)
   putStrLn(show $ w)
   putStrLn(show $ lisOfAllElem)
   --putStrLn(show $ printJust res 2 2)
   printSolution res lisOfAllElem 0 w
-  
+
   --putStrLn(show $ printJust (makeSolution (set ( set (set (set (set (set zero (3,3) 1) (3,2) 1) (2,3) 1) (2,2) 1) (3,1) 1 ) (2,1) 1) (set zero (3,2) 1) [(3,3)]  4 4) 3 3)
   --putStrLn(show $ isGood (set zero (3,2) 1) (set ( set (set (set (set (set zero (3,3) 1) (3,2) 1) (2,3) 1) (2,2) 1) (3,1) 1 ) (2,1) 1)  (makeListOfElem (3) (3) 0 0) (==)  4 4)
   --putStrLn(show $ okCondition (set zero (3,2) 1) (set ( set (set (set (set (set zero (3,3) 1) (3,2) 1) (2,3) 1) (2,2) 1) (3,1) 1 ) (2,1) 1)  (2,3) (==)  4 4)
-    
+
   -- putStrLn(show $ isGood (set zero (3,3) 1) (set (set (set (set zero (3,3) 1) (3,2) 1) (2,3) 1) (2,2) 1)  (makeListOfElem (3) (3) 0 0) (==)  w l)
   -- putStrLn(show $ isGood (set zero (3,3) 1) (set (set zero (3,3) 1) (3,2) 1)  [(3,2),(3,3)] (==)  w l)
   -- putStrLn(show $ okCondition (set zero (3,3) 1) (set zero (3,3) 1) (-1,-1) (==)  w l)
