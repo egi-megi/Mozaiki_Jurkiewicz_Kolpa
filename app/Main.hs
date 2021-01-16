@@ -49,7 +49,7 @@ okCondition endArray inputArray (x,y) comparator w l |
 
 makeListToSearch (x,y) = makeListOfElem (x+1) (y+1) (x-1) (y-1)
 
---czy warunki wokol elemntu moga byc spelnion
+--czy warunki wokół elementu mogą by spełnione
 mayBeGood endArray inputArray (x,y) comperator w l =  okCondition endArray inputArray (x,y) comperator  w l
                                                   && okCondition endArray inputArray ((x-1),y) comperator  w l
                                                   && okCondition endArray inputArray ((x-1),(y-1)) (==)  w l
@@ -64,12 +64,12 @@ mayBeGood endArray inputArray (x,y) comperator w l =  okCondition endArray input
 isGood endArray inputArray (x:xs) comparator  w l = (okCondition endArray inputArray x comparator  w l) && (isGood endArray inputArray xs comparator  w l)
 isGood endArray inputArray [] comperator  w l = True
 
--- łamigłówki
+-- sprawdzenie czy w elemencie w górnym lewym rogu, czyli takim, do którego już w następnym kroku nie zajrzymy, spełniony jest warunek równości
 testZero inputArray endArray ((x,y):restOfAllElements) w l |
-  okCondition endArray inputArray ((x-1),(y-1)) (==)  w l= makeSolution inputArray endArray restOfAllElements  w l
+  okCondition endArray inputArray ((x-1),(y-1)) (==) w l= makeSolution inputArray endArray restOfAllElements  w l
   | otherwise = Nothing
 
--- końcowe wyliczenie 0 i 1 w łamigłówce
+-- sprawdzanie kolejnych elementw z listy
 makeSolution inputArray endArray ((x,y):restOfAllElements)  w l  =
    ( let with_one = (set endArray (x,y) 1) in
       if (mayBeGood with_one inputArray (x,y) (<=)  w l) then
@@ -79,6 +79,7 @@ makeSolution inputArray endArray ((x,y):restOfAllElements)  w l  =
               Just a -> Just a
       else
         testZero  inputArray endArray ((x,y):restOfAllElements) w l)
+             
 makeSolution inputArray endArray [] w l |
   isGood endArray inputArray (makeListOfElem (w-1) (l-1) 0 0) (==)  w l = Just endArray
   |otherwise = Nothing
@@ -86,16 +87,19 @@ makeSolution inputArray endArray [] w l |
 -- wyświetlenie rozwiązania
 printSolutionA endArray ((x,y):zs) n w | n < (w - 1) = do
                                                           putStr(show $ endArray y x)
-                                                          putStr(show $ ' ')
+                                                          putStr("  ")
                                                           printSolutionA endArray zs (n+1) w
                                        | otherwise = do
                                                         putStrLn(show $ endArray y x)
                                                         printSolutionA endArray zs 0 w
+
+printSolutionA endArray [] n w   =   putStrLn( " ")                                                 
+                                                    
 printSolution Nothing lisOfAllElem n w = putStrLn(show $ "Unsolved ")
 printSolution (Just endArray) lisOfAllElem n w = printSolutionA endArray lisOfAllElem n w
 
 -- wyświetlenie macierzy wejściowej lub końcowej (jest to funkcja dodatkowa używana do debugowania)
--- dodano znak ' ' pomiędzy cwyświetlanymi cyframi, aby wyświetlany obrazek (macierz) był bardziej kwadratowy 
+-- dodano znaki dwch spacji pomiędzy cwyświetlanymi cyframi, aby wyświetlany obrazek (macierz) był bardziej kwadratowy 
 printSolutionE endArray ((x,y):zs) n w | n < (w - 1) = do
                                                           putStr(show $ (x, y))
                                                           putStr(show $ ' ')
