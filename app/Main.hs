@@ -10,15 +10,15 @@ readPuzzle filename = do
   let puzzle = read contents :: [String] -- utworzenie listy napisów
   return puzzle
 
-zero x y = 0 -- macierz samych 0
-minus_one x y = -1 -- macierz samych -1
-
--- wstawianie liczb do macierzy
-set array (x,y) c =  (\x1 y1 -> if ((x==x1) && (y==y1)) then c else array x1 y1 )
-
 -- wczytanie długości i szerokości tabeli
 puzzleLength l = length l
 puzzleWidth w = length $ head $ w
+
+zero x y = 0 -- macierz samych 0 (będzie to macierz końcowa)
+minusOne x y = -1 -- macierz samych -1 (będzie to macierz wejściowa)
+
+-- wstawianie liczb do macierzy
+set array (x,y) c =  (\x1 y1 -> if ((x==x1) && (y==y1)) then c else array x1 y1 )
 
 -- wczytywanie pierwszego wiersza z pliku wejściowego *.txt
 readLineToArray (c:xs) arInput x y | c/='.' = readLineToArray xs (set arInput (x,y) (digitToInt c)) (x+1) y | otherwise = readLineToArray xs arInput (x+1) y
@@ -35,7 +35,7 @@ okCondition endArray inputArray (x,y) comparator w l |
   x<0 = True |
   y<0 = True |
   x>=w = True |
-  y>=w = True |
+  y>=l = True |
   (inputArray x y) == -1 = True|
   otherwise = comparator ((endArray x y) +
                           (endArray (x+1) y) +
@@ -65,26 +65,27 @@ isGood endArray inputArray (x:xs) comparator  w l = (okCondition endArray inputA
 isGood endArray inputArray [] comperator  w l = True
 
 -- sprawdzenie czy w elemencie w górnym lewym rogu, czyli takim, do którego już w następnym kroku nie zajrzymy, spełniony jest warunek równości
-testZero inputArray endArray ((x,y):restOfAllElements) w l |
-  okCondition endArray inputArray ((x-1),(y-1)) (==) w l= makeSolution inputArray endArray restOfAllElements  w l
+equalityTestForNotReturningElem inputArray endArray ((x,y):restOfAllElements) w l |
+  okCondition endArray inputArray ((x-1),(y-1)) (==) w l = makeSolution inputArray endArray restOfAllElements  w l
   | otherwise = Nothing
 
 -- sprawdzanie kolejnych elementw z listy
-makeSolution inputArray endArray ((x,y):restOfAllElements)  w l  =
-   ( let with_one = (set endArray (x,y) 1) in
-      if (mayBeGood with_one inputArray (x,y) (<=)  w l) then
-        let res = makeSolution inputArray with_one restOfAllElements  w l in
+makeSolution inputArray endArray ((x,y):restOfAllElements) w l  =
+    let setOne = set endArray (x,y) 1 in
+      if mayBeGood setOne inputArray (x,y) (<=)  w l then 
+        let res = makeSolution inputArray setOne restOfAllElements  w l in
           case (res) of
-              Nothing -> (testZero inputArray endArray ((x,y):restOfAllElements) w l )
+              Nothing -> equalityTestForNotReturningElem inputArray endArray ((x,y):restOfAllElements) w l 
               Just a -> Just a
       else
-        testZero  inputArray endArray ((x,y):restOfAllElements) w l)
+        equalityTestForNotReturningElem  inputArray endArray ((x,y):restOfAllElements) w l
              
 makeSolution inputArray endArray [] w l |
   isGood endArray inputArray (makeListOfElem (w-1) (l-1) 0 0) (==)  w l = Just endArray
   |otherwise = Nothing
 
 -- wyświetlenie rozwiązania
+-- dodano znaki dwch spacji pomiędzy wyświetlanymi cyframi, aby wyświetlany obrazek (macierz) był bardziej kwadratowy
 printSolutionA endArray ((x,y):zs) n w | n < (w - 1) = do
                                                           putStr(show $ endArray y x)
                                                           putStr("  ")
@@ -98,29 +99,18 @@ printSolutionA endArray [] n w   =   putStrLn( " ")
 printSolution Nothing lisOfAllElem n w = putStrLn(show $ "Unsolved ")
 printSolution (Just endArray) lisOfAllElem n w = printSolutionA endArray lisOfAllElem n w
 
--- wyświetlenie macierzy wejściowej lub końcowej (jest to funkcja dodatkowa używana do debugowania)
--- dodano znaki dwch spacji pomiędzy cwyświetlanymi cyframi, aby wyświetlany obrazek (macierz) był bardziej kwadratowy 
+-- wyświetlenie macierzy wejściowej lub końcowej zawierającej wartości wierzchołków (jest to funkcja dodatkowa używana do debugowania)
 printSolutionE endArray ((x,y):zs) n w | n < (w - 1) = do
                                                           putStr(show $ (x, y))
                                                           putStr(show $ ' ')
                                                           printSolutionE endArray zs (n+1) w
                                        | otherwise = do
                                                         putStrLn(show $ (x,y))
-     
                                                         printSolutionE endArray zs 0 w
                                                         
--- funkcja ododatkowa do wypisywania czegokolwiek z macierzy -- służy do debugowania
+-- funkcja dodatkowa do wypisywania czegokolwiek z macierzy -- służy do debugowania
 printJust (Just a) x y = a x y
 printJust Nothing x y = -1
-
---ok_cond array input_array x y comparator -- czy suma elementow kolo tego jest comparator wzgledem wrunkow poczatkowych
---may_be_good array input_array x y -- czy warunki wokol elemntu moga byc spelnione
---is_good array input_array l w  -- czy wszysteki warunki sa spelnione
-
--- jedziesz po tej liscie
--- na poczatku element  do sprawdzenia - ustawiasz jeden i patrzysz czy moze byc dobrze (<=)
--- jesli tak jedziesz dalej, jesli wtedy wrocisz bez rozwiazania, zmieniasz na zero jedziesz dalej
--- jesli jest pusta lista sprawdz wszytskie elementy czy sa dobrze (==) zwracasz rozwiazanie - jak nie nic
 
 
 main = do
@@ -128,25 +118,6 @@ main = do
   let l = puzzleLength puzzle -- odczytanie liczby wierszy
   let w = puzzleWidth puzzle -- odczytanie liczby znakw w wierszu
   let listOfAllElem = makeListOfElem (w-1) (l-1) 0 0 -- wypisanie wszystkich wspłrzędnych w macierzy
-  let inputArray = readAllLinesToArray puzzle minus_one 0 0 -- wczytanie znaków z pliku wejściowego do macierzy wejściowej
-  let result = (makeSolution inputArray zero listOfAllElem w l) -- oblliczenie macierzy końcowej
+  let inputArray = readAllLinesToArray puzzle minusOne 0 0 -- wczytanie znaków z pliku wejściowego do macierzy wejściowej
+  let result = (makeSolution inputArray zero listOfAllElem w l) -- obliczenie macierzy końcowej
   printSolution result listOfAllElem 0 w -- wyświetlanie łamigłówki
-
-
-  -- putStrLn(show $ w) -- wyświetlanie szerokości łamigłówki
-  -- putStrLn(show $ l) -- wyświetlanie szerokości łamigłówki
-  
-  
-    --putStrLn(show $ listOfAllElem) 
-    --printSolutionA inputArray listOfAllElem 0 w
-    
-    --putStrLn(show $ printJust res 2 2)
-    --putStrLn(show $ printJust (makeSolution (set ( set (set (set (set (set zero (3,3) 1) (3,2) 1) (2,3) 1) (2,2) 1) (3,1) 1 ) (2,1) 1) (set zero (3,2) 1) [(3,3)]  4 4) 3 3)
-    --putStrLn(show $ isGood (set zero (3,2) 1) (set ( set (set (set (set (set zero (3,3) 1) (3,2) 1) (2,3) 1) (2,2) 1) (3,1) 1 ) (2,1) 1)  (makeListOfElem (3) (3) 0 0) (==)  4 4)
-    --putStrLn(show $ okCondition (set zero (3,2) 1) (set ( set (set (set (set (set zero (3,3) 1) (3,2) 1) (2,3) 1) (2,2) 1) (3,1) 1 ) (2,1) 1)  (2,3) (==)  4 4)
-  
-    -- putStrLn(show $ isGood (set zero (3,3) 1) (set (set (set (set zero (3,3) 1) (3,2) 1) (2,3) 1) (2,2) 1)  (makeListOfElem (3) (3) 0 0) (==)  w l)
-    -- putStrLn(show $ isGood (set zero (3,3) 1) (set (set zero (3,3) 1) (3,2) 1)  [(3,2),(3,3)] (==)  w l)
-    -- putStrLn(show $ okCondition (set zero (3,3) 1) (set zero (3,3) 1) (-1,-1) (==)  w l)
-    --putStrLn(show $ ((readAllLinesToArray puzzle zero 0 ) 6 9 ))
-    --putStrLn(show $ ((readLineToArray (head puzzle) zero 0 0) 2 0 ))
